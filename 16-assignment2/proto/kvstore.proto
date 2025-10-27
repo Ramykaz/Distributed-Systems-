@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package kvstore;
+option go_package = "distributed-systems/16-assignment2/proto;kvstore";
+
+message KeyValue {
+  string key = 1;
+  string value = 2;
+}
+
+message Key {
+  string key = 1;
+}
+
+message Value {
+  string value = 1;
+}
+
+message Ack {
+  bool success = 1;
+}
+
+message Empty {}
+
+service KeyValueStore {
+  rpc Put (KeyValue) returns (Ack);
+  rpc Get (Key) returns (Value);
+  rpc List (Empty) returns (stream KeyValue);
+  rpc Replicate (KeyValue) returns (Ack);
+}
