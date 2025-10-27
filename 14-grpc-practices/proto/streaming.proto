@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package streaming;
+
+option go_package = "distributed-systems/grpc-practices/proto;proto";
+
+// Service that streams multiple messages back to the client
+service Streamer {
+  rpc ListItems(Empty) returns (stream Item);
+}
+
+message Empty {}
+
+message Item {
+  string key = 1;
+  string value = 2;
+}
