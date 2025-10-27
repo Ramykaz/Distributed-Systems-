@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package streaming;
+
+option go_package = "distributed-systems/grpc-streaming/proto;proto";
+
+// A simple weather update service for demonstrating server streaming
+service WeatherService {
+  rpc GetWeatherStream (CityRequest) returns (stream WeatherUpdate);
+}
+
+message CityRequest {
+  string city = 1;
+}
+
+message WeatherUpdate {
+  string city = 1;
+  string condition = 2;
+  float temperature = 3;
+}
