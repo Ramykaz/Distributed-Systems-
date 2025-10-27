@@ -5,7 +5,7 @@ import (
     "fmt"
     "net/http"
     "strconv"
-    "sync"   // provide synchronization primitives like mutex it prevents corruption of data
+    "sync"
 )
 
 // Record represents a single log entry
@@ -51,56 +51,62 @@ func main() {
             http.Error(w, "Only POST allowed", http.StatusMethodNotAllowed)
             return
         }
+
         var req struct {
             Value string `json:"value"`
         }
+
         if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
             http.Error(w, err.Error(), http.StatusBadRequest)
             return
         }
+
         record := log.Produce(req.Value)
         w.Header().Set("Content-Type", "application/json")
         json.NewEncoder(w).Encode(record)
     })
+
+    // Consume endpoint (query parameter based)
     http.HandleFunc("/consume", func(w http.ResponseWriter, r *http.Request) {
-    	if r.Method != http.MethodGet {
-        	http.Error(w, "Only GET allowed", http.StatusMethodNotAllowed)
-        	return
-    	}
+        if r.Method != http.MethodGet {
+            http.Error(w, "Only GET allowed", http.StatusMethodNotAllowed)
+            return
+        }
 
-    	offsetStr := r.URL.Query().Get("offset")
-    		if offsetStr == "" {
-        	http.Error(w, "Offset required", http.StatusBadRequest)
-        	return
-    	}
+        offsetStr := r.URL.Query().Get("offset")
+        if offsetStr == "" {
+            http.Error(w, "Offset required", http.StatusBadRequest)
+            return
+        }
 
-    	offset, err := strconv.Atoi(offsetStr)
-    		if err != nil {
-        	http.Error(w, "Invalid offset", http.StatusBadRequest)
-        	return
-    	}
+        offset, err := strconv.Atoi(offsetStr)
+        if err != nil {
+            http.Error(w, "Invalid offset", http.StatusBadRequest)
+            return
+        }
 
-    	record, ok := log.Consume(offset)
-    		if !ok {
-        	http.Error(w, "Offset not found", http.StatusNotFound)
-        	return
-    	}	
+        record, ok := log.Consume(offset)
+        if !ok {
+            http.Error(w, "Offset not found", http.StatusNotFound)
+            return
+        }
 
-    	w.Header().Set("Content-Type", "application/json")
-    	json.NewEncoder(w).Encode(record)
+        w.Header().Set("Content-Type", "application/json")
+        json.NewEncoder(w).Encode(record)
     })
-	// List all records endpoint
-    http.HandleFunc("/records", func(w http.ResponseWriter, r *http.Request) {
-    	if r.Method != http.MethodGet {
-        	http.Error(w, "Only GET allowed", http.StatusMethodNotAllowed)
-        	return
-    	}
 
-    	log.mu.Lock()
-    	defer log.mu.Unlock()
-    
-    	w.Header().Set("Content-Type", "application/json")
-    	json.NewEncoder(w).Encode(log.records)
+    // List all records endpoint
+    http.HandleFunc("/records", func(w http.ResponseWriter, r *http.Request) {
+        if r.Method != http.MethodGet {
+            http.Error(w, "Only GET allowed", http.StatusMethodNotAllowed)
+            return
+        }
+
+        log.mu.Lock()
+        defer log.mu.Unlock()
+
+        w.Header().Set("Content-Type", "application/json")
+        json.NewEncoder(w).Encode(log.records)
     })
 
     fmt.Println("Commit log server running at http://localhost:8080")
