@@ -1,4 +1,3 @@
-```markdown
 # 💡 UNDP RAG System for Afghanistan Value Chain Integration Tool
 
 This project implements a **Retrieval-Augmented Generation (RAG)** system to support UNDP teams working on MSMEs in Least Developed Countries (LDCs), with a focus on Afghanistan. It enables document-based question answering, summarization, decision support, and metadata extraction using Azure OpenAI and ChromaDB.
